@@ -1,11 +1,17 @@
-﻿namespace MvcCore.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MvcCore.Models
 {
     public class Contrakt
     {
         public int Id { get; set; }
+
+        [Required(ErrorMessage = "Contract number is required")]
         public string ContractNumber { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Balance must be a positive number")]
         public decimal Balance { get; set; }
-        public string ClientId { get; set; } // Foreign key to Client coming from IdentityUser
+        public int ClientId { get; set; } // Foreign key to Client 
 
         // Navigation property for Transactions
         public ICollection<Transaction> Transactions { get; set; }
