@@ -9,7 +9,7 @@ namespace MvcCore.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Contract number is required")]
-        public string ContractNumber { get; set; }
+        public string? ContractNumber { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Balance must be a positive number")]
         public decimal Balance { get; set; }

@@ -44,36 +44,43 @@
     </table>
 </div>
 <br />
-<br />
-<br />
 <div style="display:flex">
+
     <form method="post" asp-action="Edit" style="flex:1">
         <input type="hidden" name="client" value="@Model"/>
         <button type="submit">Edit client</button>
     </form>
+
     <br />
+
     <form method="post" asp-action="CreateContract" style="flex:1">
         <input type="hidden" name="clientId" value="@Model.Id" />
         <button type="submit">New contract</button>
     </form>
+
     <br />
-    @* PayDebit shoud simulate a post metod that from Contract.Balance will subtract
-        Transaction.Amount
-    *@
-    @* <form method="post" asp-action="CreateTransactions" style="flex:1">
-        <input type="hidden" name="clientId" value="@Model.Contracts.First().Id" />
-        <button type="submit">New payment</button>
-    </form> *@
+
     <form method="post" asp-action="CreateTransactions" style="flex:1">
+
         <div class="form-group">
             <label>Select Contract</label>
-            <select asp-for="SelectedContractId" class="form-control">
+            <select asp-for="SelectedContractId" class="form-control" id="contractId" name="contractId">
                 @foreach (var contract in Model.Contracts)
                 {
                     <option value="@contract.Id">@contract.ContractNumber</option>
                 }
             </select>
         </div>
+
+        <input type="hidden" id="selectedContractId" name="selectedContractId" />
+
+        <script>
+            document.getElementById('contractId').addEventListener('change', function() {
+                var selectedContractId = this.value;
+                document.getElementById('SelectedContractId').value = selectedContractId;
+            });
+        </script>
+
         <button type="submit">New payment</button>
     </form>
 

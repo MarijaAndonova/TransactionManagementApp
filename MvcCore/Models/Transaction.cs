@@ -21,6 +21,11 @@ namespace MvcCore.Models
         // Navigation property for Contrakt
         public Contrakt Contrakt { get; set; }
 
+        public Transaction()
+        {
+            Contrakt = new Contrakt();
+        }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (Amount < 0)

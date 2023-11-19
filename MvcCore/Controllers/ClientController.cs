@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
 using MvcCore.Data;
 using MvcCore.Models;
+using System.Diagnostics.Contracts;
 using System.Security.Policy;
 using System.Security.Principal;
 
@@ -11,9 +12,6 @@ namespace MvcCore.Controllers
     public class ClientController : Controller
     {
         private readonly ApplicationDbContext _context;
-        
-        private Client autorizedClient;
-
         public ClientController(ApplicationDbContext context)
         {
             _context = context;
@@ -77,30 +75,39 @@ namespace MvcCore.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details));
             }
+
             return View("CreateContract", contrakt);
         }
 
         [HttpPost]
-        public IActionResult CreateTransactions(string contractId)
+        public async Task<IActionResult> CreateTransactions(string contractId)
         {
-            int contractIdIdParsed = int.Parse(contractId);
+            int contractIdParsed = int.Parse(contractId);
 
             Transaction transaction = new()
             {
-                ContraktId = contractIdIdParsed,
-                Contrakt = _context.Find<Contrakt>(contractIdIdParsed)
+                ContraktId = contractIdParsed,
+                Contrakt = _context.Find<Contrakt>(contractIdParsed),
             };
 
-            int selectedContractId = transaction.Contrakt.Client.SelectedContractId;
-
-            //Simulation of credit and debit transactions for a client that has a contract(bank account)
-            if (transaction.TransactionType == BussinesLogic.Enums.TransactionType.Debit)
+            if(transaction.Contrakt.Client == null)
             {
-                transaction.Contrakt.Balance = transaction.Contrakt.Balance - transaction.Amount;
+                transaction.Contrakt.Client = _context.Clients
+                                            .Where(client => client.Name == User.Identity.Name)
+                                            .Include(client => client.Contracts)
+                                            .ToList().FirstOrDefault(); //autorized user
             }
-            else
+
+            //ToDo create binder for Contract model
+            if (ModelState.ContainsKey("{ContractNumber}"))
+                ModelState["{ContractNumber}"].Errors.Clear();
+
+            if (ModelState.IsValid)
             {
-                transaction.Contrakt.Balance = transaction.Contrakt.Balance + transaction.Amount;
+                _context.Add(transaction);
+                _context.Update(transaction.Contrakt.Client);
+                await _context.SaveChangesAsync();
+                return View("CreateTransactions", transaction);
             }
 
             return View(transaction);
@@ -111,24 +118,54 @@ namespace MvcCore.Controllers
         {
             var contract = _context.Find<Contrakt>(transaction.ContraktId);
             transaction.Contrakt = contract;
-            var selectedContractId = transaction.Contrakt.Client.SelectedContractId;
 
-            if (selectedContractId <= 0)
+            var autorizedClient = transaction.Contrakt.Client = _context.Clients
+                                                                .Where(client => client.Name == User.Identity.Name)
+                                                                .Include(client => client.Contracts)
+                                                                .ToList().FirstOrDefault();
+
+            //Simulation of credit and debit transactions for a client that has a contract(bank account)
+            if (transaction.TransactionType == BussinesLogic.Enums.TransactionType.Debit)
             {
-                ModelState.AddModelError(string.Empty, "Please select a contract."); 
-                return View("CreateTransactions", transaction); 
+                transaction.Contrakt.Balance = transaction.Contrakt.Balance + transaction.Amount;
+            }
+            else
+            {
+                transaction.Contrakt.Balance = transaction.Contrakt.Balance - transaction.Amount;
             }
 
             contract.Transactions.Add(transaction);
+
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+
+            //ToDo create binder for Transaction model
+            ModelState.Remove("Contrakt.ContractNumber"); // Remove error for a specific key
+            ModelState.Clear(); // Clear all errors
 
             if (ModelState.IsValid)
             {
                 _context.Add(transaction);
                 _context.Update(contract);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Details));
+
+                return RedirectToAction(nameof(DetailsTransaction), new { contractId = contract.Id });
             }
-            return View("CreateTransactions", transaction);
+            return View("Details", autorizedClient);
+        }
+
+        public async Task<IActionResult> DetailsTransaction(int contractId)
+        {
+            var contractWithTransactions = await _context.Contrakts
+                                           .Include(c => c.Transactions)
+                                           .FirstOrDefaultAsync(c => c.Id == contractId);
+
+            var autorizedClient =  _context.Clients
+                                    .Where(client => client.Name == User.Identity.Name)
+                                    .Include(client => client.Contracts)
+                                    .ToList().FirstOrDefault();
+            if (contractWithTransactions != null && autorizedClient != null)
+                return View(contractWithTransactions.Transactions);
+            return RedirectToAction(nameof(Details));    
         }
 
         // POST: Client/Create
