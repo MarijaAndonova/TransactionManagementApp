@@ -11,7 +11,14 @@ namespace MvcCore.Models
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
 
+        public string UserName { get; set; }
+
         // Navigation property for Contracts
-        public ICollection<Contrakt> Contracts { get; set; }
+        public ICollection<Contrakt>? Contracts { get; set; }
+
+        public Client()
+        {
+            Contracts = new List<Contrakt>();
+        }
     }
 }

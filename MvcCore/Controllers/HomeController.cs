@@ -18,10 +18,8 @@ namespace MvcCore.Controllers
             _logger = logger;
         }
 
-        //[Authorize]
         public IActionResult Index()
         {
-            var clients = _clientRepository.GetAllClients();
             return View();
         }
 
@@ -52,7 +50,7 @@ namespace MvcCore.Controllers
                 _clientRepository.AddClient(newClient);
                 return RedirectToAction("Clients");
             }
-            return View(newClient);
+            return View(newClient);  
         }
 
         public IActionResult ShowTransactionHistory(int clientId)
