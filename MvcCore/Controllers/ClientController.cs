@@ -20,9 +20,11 @@ namespace MvcCore.Controllers
         // GET: Client
         public async Task<IActionResult> Index()
         {
-              return _context.Clients != null ? 
-                          View(await _context.Clients.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Clients'  is null.");
+            //return _context.Clients != null ? 
+            //            View(await _context.Clients.ToListAsync()) :
+            //            Problem("Entity set 'ApplicationDbContext.Clients'  is null.");
+
+            return RedirectToAction(nameof(Details));
         }
 
         // GET: Client/Details/5
@@ -98,6 +100,9 @@ namespace MvcCore.Controllers
                                             .ToList().FirstOrDefault(); //autorized user
             }
 
+
+            transaction.Contrakt.Client.SelectedContractId = contractIdParsed;
+
             //ToDo create binder for Contract model
             if (ModelState.ContainsKey("{ContractNumber}"))
                 ModelState["{ContractNumber}"].Errors.Clear();
@@ -134,6 +139,7 @@ namespace MvcCore.Controllers
                 transaction.Contrakt.Balance = transaction.Contrakt.Balance - transaction.Amount;
             }
 
+            contract.Balance = transaction.Contrakt.Balance;
             contract.Transactions.Add(transaction);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors);
