@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static MvcCore.BussinesLogic.Enums;
 
 namespace MvcCore.Models
 {
@@ -15,7 +16,7 @@ namespace MvcCore.Models
         public DateTime Date { get; set; }
 
         [Required(ErrorMessage = "Transaction type is required")]
-        public string TransactionType { get; set; }
+        public TransactionType TransactionType { get; set; }
 
         // Navigation property for Contrakt
         public Contrakt Contrakt { get; set; }

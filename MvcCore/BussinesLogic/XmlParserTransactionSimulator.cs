@@ -47,7 +47,7 @@ namespace MvcCore.BussinesLogic
                                             "dd.MM.yyyy HH:mm:ss",
                                             null
                                         );
-                                        transaction.TransactionType = transactionNode.SelectSingleNode("TransactionType")?.InnerText;
+                                        //transaction.TransactionType = transactionNode.SelectSingleNode("TransactionType")?.InnerText;
 
                                         transactions.Add(transaction);
                                     }

@@ -19,6 +19,7 @@
         </dd>
     </dl>
     <br />
+    <h4>Bank accounts</h4>
     <table class="table">
         <thead>
             <tr>
@@ -48,11 +49,32 @@
 <div style="display:flex">
     <form method="post" asp-action="Edit" style="flex:1">
         <input type="hidden" name="client" value="@Model"/>
-        <button type="submit">Edit</button>
+        <button type="submit">Edit client</button>
     </form>
     <br />
     <form method="post" asp-action="CreateContract" style="flex:1">
         <input type="hidden" name="clientId" value="@Model.Id" />
         <button type="submit">New contract</button>
     </form>
+    <br />
+    @* PayDebit shoud simulate a post metod that from Contract.Balance will subtract
+        Transaction.Amount
+    *@
+    @* <form method="post" asp-action="CreateTransactions" style="flex:1">
+        <input type="hidden" name="clientId" value="@Model.Contracts.First().Id" />
+        <button type="submit">New payment</button>
+    </form> *@
+    <form method="post" asp-action="CreateTransactions" style="flex:1">
+        <div class="form-group">
+            <label>Select Contract</label>
+            <select asp-for="SelectedContractId" class="form-control">
+                @foreach (var contract in Model.Contracts)
+                {
+                    <option value="@contract.Id">@contract.ContractNumber</option>
+                }
+            </select>
+        </div>
+        <button type="submit">New payment</button>
+    </form>
+
 </div>

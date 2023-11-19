@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
 using MvcCore.Data;
 using MvcCore.Models;
+using System.Security.Policy;
+using System.Security.Principal;
 
 namespace MvcCore.Controllers
 {
     public class ClientController : Controller
     {
         private readonly ApplicationDbContext _context;
+        
+        private Client autorizedClient;
 
         public ClientController(ApplicationDbContext context)
         {
@@ -79,6 +78,57 @@ namespace MvcCore.Controllers
                 return RedirectToAction(nameof(Details));
             }
             return View("CreateContract", contrakt);
+        }
+
+        [HttpPost]
+        public IActionResult CreateTransactions(string contractId)
+        {
+            int contractIdIdParsed = int.Parse(contractId);
+
+            Transaction transaction = new()
+            {
+                ContraktId = contractIdIdParsed,
+                Contrakt = _context.Find<Contrakt>(contractIdIdParsed)
+            };
+
+            int selectedContractId = transaction.Contrakt.Client.SelectedContractId;
+
+            //Simulation of credit and debit transactions for a client that has a contract(bank account)
+            if (transaction.TransactionType == BussinesLogic.Enums.TransactionType.Debit)
+            {
+                transaction.Contrakt.Balance = transaction.Contrakt.Balance - transaction.Amount;
+            }
+            else
+            {
+                transaction.Contrakt.Balance = transaction.Contrakt.Balance + transaction.Amount;
+            }
+
+            return View(transaction);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PostTransaction(Transaction transaction)
+        {
+            var contract = _context.Find<Contrakt>(transaction.ContraktId);
+            transaction.Contrakt = contract;
+            var selectedContractId = transaction.Contrakt.Client.SelectedContractId;
+
+            if (selectedContractId <= 0)
+            {
+                ModelState.AddModelError(string.Empty, "Please select a contract."); 
+                return View("CreateTransactions", transaction); 
+            }
+
+            contract.Transactions.Add(transaction);
+
+            if (ModelState.IsValid)
+            {
+                _context.Add(transaction);
+                _context.Update(contract);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Details));
+            }
+            return View("CreateTransactions", transaction);
         }
 
         // POST: Client/Create
