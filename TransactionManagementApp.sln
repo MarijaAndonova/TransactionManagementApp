@@ -5,6 +5,15 @@ VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvcCore", "MvcCore\MvcCore.csproj", "{E9F58B00-C9F5-47E9-A1C4-5953AE0D32F8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{24D5E96A-A37E-4881-890D-CC4682899605}"
+	ProjectSection(SolutionItems) = preProject
+		dbo.InsertIntoClients.sql = dbo.InsertIntoClients.sql
+		dbo.InsertIntoContrakts.sql = dbo.InsertIntoContrakts.sql
+		dbo.InsertIntoTransactions.sql = dbo.InsertIntoTransactions.sql
+		dbo.InsertTransactionsFromXML.sql = dbo.InsertTransactionsFromXML.sql
+		TestStoredProcedures.sql = TestStoredProcedures.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
