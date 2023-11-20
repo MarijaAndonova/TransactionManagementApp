@@ -15,7 +15,13 @@ namespace MvcCore.BussinesLogic.Repository
         public void AddTransaction(Transaction transaction)
         {
             _context.Transactions.Add(transaction);
-            _context.SaveChanges();
+            _context.SaveChangesAsync();
+        }
+
+        public void UpdateTransaction(Transaction transaction)
+        {
+            _context.Transactions.Update(transaction);
+            _context.SaveChangesAsync();
         }
     }
 }

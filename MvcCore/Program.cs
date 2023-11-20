@@ -17,6 +17,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 //builder.Services.AddControllers();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AutorizedUser", policy => policy.RequireClaim("UserName"));
+});
+
 // Register repository
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 

@@ -15,7 +15,13 @@ namespace MvcCore.BussinesLogic.Repository
         public void AddContract(Contrakt contract)
         {
             _context.Contrakts.Add(contract);
-            _context.SaveChanges();
+            _context.SaveChangesAsync();
+        }
+
+        public void UpdateContract(Contrakt contract)
+        {
+            _context.Contrakts.Update(contract);
+            _context.SaveChangesAsync();
         }
     }
 }

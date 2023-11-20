@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Differencing;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using MvcCore.BussinesLogic.Repository;
 using MvcCore.Data;
 using MvcCore.Models;
-using System.Diagnostics.Contracts;
-using System.Security.Policy;
-using System.Security.Principal;
+using System.Data;
+using static MvcCore.BussinesLogic.Enums;
 
 namespace MvcCore.Controllers
 {
@@ -158,9 +159,22 @@ namespace MvcCore.Controllers
             }
             return View("Details", autorizedClient);
         }
-
+        //[HttpPost]
+        //[Authorize(Policy = "AutorizedUser")]
         public async Task<IActionResult> DetailsTransaction(int contractId)
         {
+            if (contractId == 0)
+            {
+                //Give all transactions for autorized client
+                var client = _context.Clients
+                                .Where(client => client.Name == User.Identity.Name)
+                                .Include(client => client.Contracts)
+                                .ToList().FirstOrDefault();
+                
+                return View(GetClientTransactions(client.Id));
+            }
+                
+
             var contractWithTransactions = await _context.Contrakts
                                            .Include(c => c.Transactions)
                                            .FirstOrDefaultAsync(c => c.Id == contractId);
@@ -281,6 +295,41 @@ namespace MvcCore.Controllers
         private bool ClientExists(int id)
         {
           return (_context.Clients?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        public List<Transaction> GetClientTransactions(int clientId)
+        {
+            List<Transaction> transactions = new List<Transaction>();
+
+            string connectionString = _context.Database.GetDbConnection().ConnectionString; ;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand("GetClientTransactions", connection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@ClientId", clientId);
+
+                connection.Open();
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Transaction transaction = new Transaction
+                        {
+                            TransactionId = Convert.ToInt32(reader["TransactionId"]),
+                            Amount = Convert.ToDecimal(reader["Amount"]),
+                            Date = Convert.ToDateTime(reader["Date"]),
+                            TransactionType = Enum.Parse<TransactionType>(reader["TransactionType"].ToString())
+                        };
+
+                        transactions.Add(transaction);
+                    }
+                }
+            }
+
+            return transactions;
         }
     }
 }
